@@ -1,0 +1,32 @@
+{:duct.core/project-ns  bbs-duct
+ :duct.core/environment :production
+
+ :duct.module/logging {}
+ :duct.module.web/site {}
+ :duct.module/sql {}
+
+ :duct.core/handler
+ {:middleware ^distinct [#ig/ref :bbs-duct.middleware.bouncr/bouncr]}
+
+ :duct.migrator/ragtime
+ {:database #ig/ref :duct.database/sql
+  :logger   #ig/ref :duct/logger
+  :strategy :rebase
+  :migrations [#ig/ref :bbs-duct.migration/create-bbs]
+  }
+
+ [:duct.migrator.ragtime/sql :bbs-duct.migration/create-bbs]
+ {:up   ["CREATE TABLE comments(
+            id identity,
+            name VARCHAR(100) NOT NULL,
+            description VARCHAR(1000),
+            posted_at TIMESTAMP NOT NULL,
+            PRIMARY KEY(id))"]
+  :down ["DROP TABLE comments"]}
+
+ :bbs-duct.middleware.bouncr/bouncr {}
+ :duct.router/cascading
+ [#ig/ref :bbs-duct.handler/bbs]
+
+ :bbs-duct.handler/bbs
+ {:db #ig/ref :duct.database/sql}}
